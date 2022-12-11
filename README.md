@@ -1,10 +1,10 @@
-# ezDiff
+# ezdiff
 
 A tiny forward automatic differentiation library for learning purposes. If you need something fully featured, check out [`hyperdual`](https://crates.io/crates/hyperdual).
 
 ## What is automatic differentiation?
 
-AutoDiff is a way to automatically calculate derivatives. AutoDiff is *not* symbolic (computer algebra) or numerical differentiation, instead it computes derivatives at the same time as the regular values are being evaluated, by using dual numbers.
+AutoDiff is a way to automatically calculate derivatives. AutoDiff is *not* symbolic (computer algebra) or numerical differentiation, instead it computes derivatives *at the same time* the regular values are being evaluated, using dual numbers.
 
 ### Dual Numbers
 
@@ -14,9 +14,17 @@ They sound fancy, but it's essentially just using a tuple of values `(x, dx)`, i
 
 Operator overloading is a technique where you *overload* mathematical operators in a programming language (`+`, `-`, `*`, `/`) with your own implementation. To do this in Rust, all we need to do is take our dual number type, and implement the math operation traits on it: `impl Add for Dual { ... }`.
 
-### How does it actually *work*?
+What we need to do is define how to compute the value and derivative of a dual number when multiplying, adding, using trig functions, etc. Once we do this, we can use our `Dual` type like any other numeric type.
 
-So, we've talked in abstract how we replace `x` when evaluating `f(x)` with a tuple `(x, dx)`, then do *something* to that number with operator overloading. This is where we get to the neat trick (mathematicians *hate* this one weird trick). The trick is conceptually simple - use the chain rule.
+## How does it actually *work*?
+
+So, we've talked in abstract how we replace `x` when evaluating `f(x)` with a tuple `(x, dx)`, then do *something* to that number with operator overloading. This is where we get to the neat trick (mathematicians *hate* this one weird trick). The trick is conceptually simple:
+
+- Use the chain rule to break up our function into parts we can easily evaluate
+- Store the value as well as its derivative in a dual number (tuple), and use this in place of the value (e.g. $x$) in our function
+- Use operator overloading to compute the value and its derivative *at the same time* using basic derivative rules (e.g. power rule, quotient rule, product rule, etc.).
+
+### The Chain Rule
 
 The chain rule tells us that when we are trying to find the derivative of some really complicated function, we can split up the complicated function into many small, simple functions that are easy to evaluate. 
 
@@ -28,6 +36,8 @@ $f(g(x)) = cos(g(x))$ and $g(x) = x^2$
 
 We no longer need to find the derivative of $cos(x^2)$! Now we only need to find the derivative of $cos(u)$ and $x^2$ separately, then mush them together.
 
+### Step-by-step
+
 So, how do dual numbers come into play here? If you take a look at how we evaluated $cos(x^2)$ by breaking it into smaller parts, well, that's also how we evaluate a function normally! I can't easily compute $cos(x^2)$, but I can compute $x^2$, then plug it into $cos()$. We can take advantage of this to compute the "primal" (x) and the derivative (d/dx). Let's do this step-by-step:
 
 1. Let's start by defining a dual number as `Dual = (x, dx)`.
@@ -36,7 +46,7 @@ So, how do dual numbers come into play here? If you take a look at how we evalua
     
     `Dual^2 = (x^2, 2*x*dx)`
     
-    Here we calculate the primal value on the left, and the derivative on the right. The primal is just, well, the normal operation, `x^2`. For the derivative, all we need to do is answer: what is the *derivative* of `x^2`? Here we can simply use the power rule: $\frac{d}{dx} x^n = nx^{n-1} dx$. Concretely, $\frac{d}{dx} x^2 = 2*x* dx$.
+    Here we calculate the primal value on the left, and the derivative on the right. The primal is just, well, the normal operation, `x^2`. For the derivative, all we need to do is answer: what is the *derivative* of `x^2`? Here we can simply use the power rule: $\frac{d}{dx} x^n = nx^{n-1} dx$. Concretely, $\frac{d}{dx} x^2 = 2xdx$.
 
 4. We can continue with the order of operations and evaluate $cos(Dual)$, using the rules for derivatives of trig functions: $\frac{d}{dx}cos(x) = -sin(x)dx$.
 
@@ -68,8 +78,8 @@ which returns
 
 ```
 y = Dual {
-    val: 0.9912028118634736,
-    dot: 1.3235175009777302,
+    x: 0.9912028118634736,
+    dx: 1.3235175009777302,
 }
 ```
 
