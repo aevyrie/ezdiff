@@ -2,9 +2,13 @@
 
 A tiny forward automatic differentiation library for learning purposes. If you need something fully featured, check out [`hyperdual`](https://crates.io/crates/hyperdual).
 
-## Why does this exist?
+#### Why does this library exist?
 
-I wanted to learn how autodiff worked, and all the resources I found were either too academic, or too handwavy. The goal of this writep is to thoroughly describe how to implement forward autodiff, in the simplest terms possible. Hopefully someone else finds this useful.
+I wanted to learn how autodiff worked, and all the resources I found were either too academic, or too handwavy. The goal of this writeup is to thoroughly describe how to implement forward autodiff, in the simplest terms possible. Hopefully someone else finds this useful.
+
+## Why is autodiff useful?
+
+Instead of needing to iteratively approximate the derivative (numerical, finite differences) or attempt to find a symbolic representation of the derivative (computer algebra), we can compute the derivative value at the same time we compute the primal value at the cost of only a few instructions per math operation. There is little to no memory overhead, and the compiler can optimize the derivative computation inline with the rest of our code!
 
 ## What is automatic differentiation?
 
@@ -87,6 +91,9 @@ y = Dual {
 }
 ```
 
-## Why is this useful?
+## License
 
-Instead of needing to iteratively approximate the value (numerical, finite differences), or attempt to find a symbolic representation of the derivative (computer algebra), we can compute the derivative damn near for free, and the compiler can optimize it inline with our code. Because the implementation is just defining the derivative as a math operation the same way the equation would normally be evaluated, the computational complexity of the derivative is proportional to the complexity of the original equation!
+All code and documentation in this repository is dual-licensed under either:
+
+  - MIT License ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+  - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
