@@ -8,7 +8,7 @@ I wanted to learn how autodiff worked, and all the resources I found were either
 
 ## Why is autodiff useful?
 
-Instead of needing to iteratively approximate the derivative (numerical, finite differences) or attempt to find a symbolic representation of the derivative (computer algebra), we can compute the derivative value at the same time we compute the primal value at the cost of only a few instructions per math operation. There is little to no memory overhead, and the compiler can optimize the derivative computation inline with the rest of our code!
+Instead of needing to iteratively approximate the derivative (numerical, finite differences) or attempt to find a symbolic representation of the derivative (computer algebra), we can compute the derivative value at the same time we compute the primal value at the small fixed cost of only a few extra instructions per math operation. There is little to no memory overhead, no allocation, and the compiler can optimize the derivative computation inline with the rest of our code!
 
 ## What is automatic differentiation?
 
