@@ -2,6 +2,10 @@
 
 A tiny forward automatic differentiation library for learning purposes. If you need something fully featured, check out [`hyperdual`](https://crates.io/crates/hyperdual).
 
+## Why does this exist?
+
+I wanted to learn how autodiff worked, and all the resources I found were either too academic, or too handwavy. The goal of this writep is to thoroughly describe how to implement forward autodiff, in the simplest terms possible. Hopefully someone else finds this useful.
+
 ## What is automatic differentiation?
 
 AutoDiff is a way to automatically calculate derivatives. AutoDiff is *not* symbolic (computer algebra) or numerical differentiation, instead it computes derivatives *at the same time* the regular values are being evaluated, using dual numbers.
