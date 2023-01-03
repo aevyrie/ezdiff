@@ -6,17 +6,17 @@ use std::{
 use num_traits::{Float, Pow};
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
-pub struct Dual<F: Float> {
-    x: F,
-    dx: F,
+pub struct Dual<F: Float, const N: usize> {
+    x: [F; N],
+    dx: [F; N],
 }
 
-impl<F: Float> Dual<F> {
+impl<F: Float, const N: usize> Dual<F, N> {
     #[inline]
     pub fn new(val: F) -> Self {
         Self {
-            x: val,
-            dx: F::one(),
+            x: [val; N],
+            dx: [F::one(); N],
         }
     }
 
@@ -27,10 +27,11 @@ impl<F: Float> Dual<F> {
 
     #[inline]
     pub fn exp(self) -> Self {
-        Dual {
-            x: self.x.exp(),
-            dx: self.x.exp() * self.dx,
+        for i in 0..N {
+            self.x[i] = self.x[i].exp();
+            self.dx[i] = self.x[i].exp() * self.dx[i];
         }
+        self
     }
 
     #[inline]
@@ -106,8 +107,8 @@ impl<F: Float> Dual<F> {
     }
 }
 
-impl<F: Float> Neg for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Neg for Dual<F, N> {
+    type Output = Dual<F, N>;
 
     fn neg(self) -> Self::Output {
         Dual {
@@ -118,8 +119,8 @@ impl<F: Float> Neg for Dual<F> {
 }
 
 // Sum rule
-impl<F: Float> Add for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Add for Dual<F, N> {
+    type Output = Dual<F, N>;
 
     fn add(self, rhs: Self) -> Self::Output {
         Dual {
@@ -130,8 +131,8 @@ impl<F: Float> Add for Dual<F> {
 }
 
 // Sum constant
-impl<F: Float> Add<F> for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Add<F> for Dual<F, N> {
+    type Output = Dual<F, N>;
 
     fn add(self, rhs: F) -> Self::Output {
         Dual {
@@ -142,10 +143,10 @@ impl<F: Float> Add<F> for Dual<F> {
 }
 
 // Sum constant
-impl Add<Dual<f32>> for f32 {
-    type Output = Dual<f32>;
+impl<const N: usize> Add<Dual<f32, N>> for f32 {
+    type Output = Dual<f32, N>;
 
-    fn add(self, rhs: Dual<f32>) -> Self::Output {
+    fn add(self, rhs: Dual<f32, N>) -> Self::Output {
         Dual {
             x: rhs.x + self,
             dx: rhs.dx,
@@ -154,10 +155,10 @@ impl Add<Dual<f32>> for f32 {
 }
 
 // Sum constant
-impl Add<Dual<f64>> for f64 {
-    type Output = Dual<f64>;
+impl<const N: usize> Add<Dual<f64, N>> for f64 {
+    type Output = Dual<f64, N>;
 
-    fn add(self, rhs: Dual<f64>) -> Self::Output {
+    fn add(self, rhs: Dual<f64, N>) -> Self::Output {
         Dual {
             x: rhs.x + self,
             dx: rhs.dx,
@@ -166,10 +167,10 @@ impl Add<Dual<f64>> for f64 {
 }
 
 // Sum constant
-impl<F: Float> Add<Dual<F>> for (F,) {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Add<Dual<F, N>> for (F,) {
+    type Output = Dual<F, N>;
 
-    fn add(self, rhs: Dual<F>) -> Self::Output {
+    fn add(self, rhs: Dual<F, N>) -> Self::Output {
         Dual {
             x: rhs.x + self.0,
             dx: rhs.dx,
@@ -178,8 +179,8 @@ impl<F: Float> Add<Dual<F>> for (F,) {
 }
 
 // Difference rule
-impl<F: Float> Sub for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Sub for Dual<F, N> {
+    type Output = Dual<F, N>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         Dual {
@@ -190,10 +191,10 @@ impl<F: Float> Sub for Dual<F> {
 }
 
 // Product rule
-impl<F: Float> Mul for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Mul for Dual<F, N> {
+    type Output = Dual<F, N>;
 
-    fn mul(self, rhs: Dual<F>) -> Self::Output {
+    fn mul(self, rhs: Dual<F, N>) -> Self::Output {
         Dual {
             x: self.x * rhs.x,
             dx: self.x * rhs.dx + rhs.x * self.dx,
@@ -202,8 +203,8 @@ impl<F: Float> Mul for Dual<F> {
 }
 
 // Constant multiple rule
-impl<F: Float> Mul<F> for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Mul<F> for Dual<F, N> {
+    type Output = Dual<F, N>;
 
     fn mul(self, rhs: F) -> Self::Output {
         Dual {
@@ -214,10 +215,10 @@ impl<F: Float> Mul<F> for Dual<F> {
 }
 
 // Constant multiple rule
-impl Mul<Dual<f32>> for f32 {
-    type Output = Dual<f32>;
+impl<const N: usize> Mul<Dual<f32, N>> for f32 {
+    type Output = Dual<f32, N>;
 
-    fn mul(self, rhs: Dual<f32>) -> Self::Output {
+    fn mul(self, rhs: Dual<f32, N>) -> Self::Output {
         Dual {
             x: self * rhs.x,
             dx: self * rhs.dx,
@@ -226,10 +227,10 @@ impl Mul<Dual<f32>> for f32 {
 }
 
 // Constant multiple rule
-impl Mul<Dual<f64>> for f64 {
-    type Output = Dual<f64>;
+impl<const N: usize> Mul<Dual<f64, N>> for f64 {
+    type Output = Dual<f64, N>;
 
-    fn mul(self, rhs: Dual<f64>) -> Self::Output {
+    fn mul(self, rhs: Dual<f64, N>) -> Self::Output {
         Dual {
             x: self * rhs.x,
             dx: self * rhs.dx,
@@ -238,10 +239,10 @@ impl Mul<Dual<f64>> for f64 {
 }
 
 // Quotient rule
-impl<F: Float> Div for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Div for Dual<F, N> {
+    type Output = Dual<F, N>;
 
-    fn div(self, rhs: Dual<F>) -> Self::Output {
+    fn div(self, rhs: Dual<F, N>) -> Self::Output {
         Dual {
             x: self.x / rhs.x,
             dx: (self.x * rhs.dx + rhs.x * self.dx) / (rhs.x * rhs.x),
@@ -250,8 +251,8 @@ impl<F: Float> Div for Dual<F> {
 }
 
 // Power rule
-impl<F: Float> Pow<F> for Dual<F> {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Pow<F> for Dual<F, N> {
+    type Output = Dual<F, N>;
 
     fn pow(self, rhs: F) -> Self::Output {
         Dual {
@@ -262,10 +263,10 @@ impl<F: Float> Pow<F> for Dual<F> {
 }
 
 // Inverse(?) power rule a^x
-impl<F: Float> Pow<Dual<F>> for (F,) {
-    type Output = Dual<F>;
+impl<F: Float, const N: usize> Pow<Dual<F, N>> for (F,) {
+    type Output = Dual<F, N>;
 
-    fn pow(self, rhs: Dual<F>) -> Self::Output {
+    fn pow(self, rhs: Dual<F, N>) -> Self::Output {
         Dual {
             x: self.0.powf(rhs.x),
             dx: self.0.ln() * self.0.powf(rhs.x) * rhs.dx,
@@ -274,10 +275,10 @@ impl<F: Float> Pow<Dual<F>> for (F,) {
 }
 
 // Inverse(?) power rule a^x
-impl Pow<Dual<f32>> for f32 {
-    type Output = Dual<f32>;
+impl<const N: usize> Pow<Dual<f32, N>> for f32 {
+    type Output = Dual<f32, N>;
 
-    fn pow(self, rhs: Dual<f32>) -> Self::Output {
+    fn pow(self, rhs: Dual<f32, N>) -> Self::Output {
         Dual {
             x: self.powf(rhs.x),
             dx: self.ln() * self.powf(rhs.x) * rhs.dx,
@@ -286,10 +287,10 @@ impl Pow<Dual<f32>> for f32 {
 }
 
 // Inverse(?) power rule a^x
-impl Pow<Dual<f64>> for f64 {
-    type Output = Dual<f64>;
+impl<const N: usize> Pow<Dual<f64, N>> for f64 {
+    type Output = Dual<f64, N>;
 
-    fn pow(self, rhs: Dual<f64>) -> Self::Output {
+    fn pow(self, rhs: Dual<f64, N>) -> Self::Output {
         Dual {
             x: self.powf(rhs.x),
             dx: self.ln() * self.powf(rhs.x) * rhs.dx,
@@ -304,14 +305,14 @@ macro_rules! dual {
     }};
 }
 
-impl From<f32> for Dual<f32> {
+impl<const N: usize> From<[f32; N]> for Dual<f32, N> {
     #[inline]
     fn from(input: f32) -> Self {
         Dual::new(input)
     }
 }
 
-impl From<f64> for Dual<f64> {
+impl<const N: usize> From<[f64; N]> for Dual<f64, N> {
     #[inline]
     fn from(input: f64) -> Self {
         Dual::new(input)
